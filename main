@@ -1,0 +1,109 @@
+fun decodeChuckNorris(encodedString: String): String {
+    val binaryString = StringBuilder()
+    val blocks = encodedString.trim().split(" ")
+
+    // Validácia: Počet blokov musí byť párny
+    if (blocks.size % 2 != 0) {
+        return "INVALID"
+    }
+
+    var i = 0
+    while (i < blocks.size) {
+        val prefix = blocks[i]
+        val bit = when (prefix) {
+            "0" -> "1"
+            "00" -> "0"
+            else -> return "INVALID" // Neplatný prefix
+        }
+        val length = blocks[i + 1].length
+        binaryString.append(bit.repeat(length))
+        i += 2
+    }
+
+    // Skontrolujeme, či je dĺžka binárneho reťazca násobkom 7
+    if (binaryString.length % 7 != 0) {
+        return "INVALID"
+    }
+
+    // Prevedieme binárny reťazec na znaky
+    return binaryString.chunked(7)
+        .map { it.toInt(2).toChar() }
+        .joinToString("")
+}
+
+fun decode() {
+    println("Input encoded string:")
+    val encodedString = readLine() ?: ""
+
+    // Decode the encoded string
+    val decodedMessage = decodeChuckNorris(encodedString)
+
+    // Print the result with exactly two lines
+    if (decodedMessage == "INVALID") {
+        println("Encoded string is not valid.")
+    } else {
+        println("Decoded string: \n$decodedMessage")
+    }
+}
+
+
+fun main() {
+    var loop = true
+    do {
+        println("Please input operation (encode/decode/exit):")
+        val codeWord = readLine()!!.toString()
+        when (codeWord) {
+            "encode" -> encode()
+            "decode" -> decode()
+            "exit" -> {
+                println("Bye!")
+                loop = false
+            } else -> println("There is no '$codeWord' operation")
+
+        }
+        println()
+    } while (loop)
+}
+
+fun encode() {
+    println("Input string:")
+    val inputString = readLine() ?: ""
+
+    // Convert input string to binary
+    val binaryString = stringToBinary(inputString)
+
+    // Encode the binary string
+    val encodedMessage = chuckNorrisEncode(binaryString)
+
+    // Print the result
+    println("Encoded string:")
+    println(encodedMessage)
+}
+
+fun stringToBinary(input: String): String {
+    return input.map { char ->
+        char.code.toString(2).padStart(7, '0')
+    }.joinToString("")
+}
+
+fun chuckNorrisEncode(binaryString: String): String {
+    val encodedMessage = StringBuilder()
+    var i = 0
+
+    while (i < binaryString.length) {
+        val currentBit = binaryString[i]
+        val prefix = if (currentBit == '1') "0" else "00"
+
+        // Count the number of consecutive bits that are the same
+        var count = 0
+        while (i < binaryString.length && binaryString[i] == currentBit) {
+            count++
+            i++
+        }
+
+        // Append the encoded block to the result
+        encodedMessage.append(prefix).append(" ").append("0".repeat(count)).append(" ")
+    }
+
+    return encodedMessage.toString().trim()
+}
